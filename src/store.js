@@ -7,9 +7,24 @@ const getDataPath = dataType => `/data/${dataType}.json`
 
 const initSchema = db => {
     DATATYPES.forEach(dataType => {
-        db.createObjectStore(dataType, { keyPath: "t" });
+        db.createObjectStore(dataType, { keyPath: "id" });
     })
 }
+
+const serverDateToId = dateStr => {
+    const date = new Date(dateStr)
+    return { id: date.getFullYear() * 100 + date.getMonth(), day: date.getDate() }
+}
+
+const repackData = rawData => rawData.reduce((result, entry) => {
+    const { id, day } = serverDateToId(entry.t)
+    if (!result[id]) {
+        result[id] = {}
+    }
+    result[id][day] = entry.v
+    return result
+}, {})
+
 
 const openDb = () => new Promise((resolve, reject) => {
     const request = indexedDB.open("WeatherStats", 1);
@@ -34,7 +49,7 @@ const fillDb = dataType => new Promise(async (resolve, reject) => {
     transaction.oncomplete = resolve
     transaction.onerror = reject
 
-    rawData.forEach(entry => store.add(entry))
+    Object.entries(repackData(rawData)).forEach(([id, data]) => store.add({ id, data }))
 })
 
 const fetchFromDb = (dataType, fromYear, toYear) => new Promise(async (resolve, reject) => {
@@ -47,7 +62,7 @@ const fetchFromDb = (dataType, fromYear, toYear) => new Promise(async (resolve, 
     cursor.onsuccess = event => {
         const cursor = event.target.result;
         if (cursor) {
-            result.push(cursor.value.v)
+            result.push(cursor.value.data)
             cursor.continue()
         } else {
             resolve(result)

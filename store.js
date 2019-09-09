@@ -72,7 +72,7 @@ const fetchFromDb = (dataType, fromYear, toYear) => new Promise(async (resolve, 
     cursor.onerror = () => reject(NO_DATA_ERROR)
 })
 
-export const fetchData = async (dataType, fromYear, toYear) => {
+const fetchData = async (dataType, fromYear, toYear) => {
     let result = await fetchFromDb(dataType, fromYear, toYear)
     if (result.length === 0) {
         await fillDb(dataType)

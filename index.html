@@ -1,0 +1,49 @@
+<?doctype html>
+<html>
+    <head>
+        <title>Weather Stats</title>
+        <script src="/store.js"></script>
+        <script src="/chart.js"></script>
+        <script src="/index.js"></script>
+    </head>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .main { 
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+        }
+
+        .type-selector, .chart-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chart {
+            border: solid 1px #eee;
+            height: 400px;
+            width: 600px;
+        }
+    </style>
+    <body>
+        <h3>Архив Метеослужбы</h3>
+        <div class="main">
+            <div class="type-selector">
+                <button onclick="switchDataType('temperature')">Температура</button>
+                <button onclick="switchDataType('precipitation')">Осадки</button>
+            </div>
+            <div class="chart-container">
+                <div class="chart-controls">
+                    <select name="from" class="range-select" onchange="onRangeSelect()"></select>
+                    <select name="to" class="range-select" onchange="onRangeSelect()"></select>
+                </div>
+                <div id="chart" width="600" height="400"></div>
+            </div>
+        </div>
+        
+    </body>
+</html>

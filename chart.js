@@ -1,21 +1,38 @@
-export function createChart (height, width) {
+function createChart (height, width) {
     var chartEl = document.createElement('canvas');
     chartEl.setAttribute('width', width);
     chartEl.setAttribute('height', height);
-    document.body.appendChild(chartEl);
+    document.querySelector('#chart').appendChild(chartEl);
     return chartEl;
 }
 
-export function drawData (data, el) {
-    var len = data.length;
+const avg = arr => arr.reduce((a,b) => a + b, 0) / arr.length
+
+function reSample(data, size) {
+    const chunkSize = data.length / size;
+    return data.reduce(function({ result, chunk }, v) {
+        if (chunk.length >= chunkSize) {
+            result.push(avg(chunk));
+            return {
+                result, chunk: [v]
+            }
+        } 
+        chunk.push(v)
+        return { result, chunk }
+    }, { result: [], chunk: []}).result
+}
+
+function drawData (data, el) {
     var width = parseInt(el.getAttribute('width'), 10);
+    var len = width;
     var height = parseInt(el.getAttribute('height'), 10);
     var gap = width / (len - 1);
     var ctx = el.getContext('2d');
 
     var startPoint = null;
 
-    var points = getPoints(data);
+    console.log(reSample(data, width))
+    var points = getPoints(reSample(data, width));
     var endPoint;
     var point;
 
@@ -120,15 +137,3 @@ function getPoints(data) {
     }
     return points;
 };
-
-/*
-  <canvas width="100" height="30" id="weekline"> </canvas>
-
-    <br>
-
-    <canvas width="100" height="30" id="weekline2"> </canvas>
-    <script>
-        draw([null,3,4,2,6,3,7,1], "#weekline");
-        draw([700,300,109,null, 435, 88, 234, null,123,645,723,112], "#weekline2");
-    </script>
-*/

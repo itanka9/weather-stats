@@ -1,10 +1,16 @@
 'use strict';
 
 const cacheName = 'statics',
-    cacheVersion = '2',
+    cacheVersion = '3',
 
     cacheContent = [
-        '/main.js',
+        '/funlib.js',
+        '/streams.js',
+        '/store.js',
+        '/chart.js',
+        '/ui.js',
+        '/index.js',
+        '/index.html',
         '/'
     ];
 

@@ -1,139 +1,142 @@
-function createChart (height, width) {
-    var chartEl = document.createElement('canvas');
-    chartEl.setAttribute('width', width);
-    chartEl.setAttribute('height', height);
-    document.querySelector('#chart').appendChild(chartEl);
-    return chartEl;
-}
+var Chart = function (width, height, el) {
 
-const avg = arr => arr.reduce((a,b) => a + b, 0) / arr.length
+    var X_TICKS_COUNT = 10,
+        Y_TICKS_COUNT = 5,
+        X_PADDING  = 15,
+        Y_PADDING  = 50,
+        PADDING    = 5;
 
-function reSample(data, size) {
-    const chunkSize = data.length / size;
-    return data.reduce(function({ result, chunk }, v) {
-        if (chunk.length >= chunkSize) {
-            result.push(avg(chunk));
-            return {
-                result, chunk: [v]
-            }
-        } 
-        chunk.push(v)
-        return { result, chunk }
-    }, { result: [], chunk: []}).result
-}
+    var canvas = document.createElement('canvas');
 
-function drawData (data, el) {
-    var width = parseInt(el.getAttribute('width'), 10);
-    var len = width;
-    var height = parseInt(el.getAttribute('height'), 10);
-    var gap = width / (len - 1);
-    var ctx = el.getContext('2d');
+    canvas.setAttribute('width', width);
+    canvas.setAttribute('height', height);
+    el.appendChild(canvas);
 
-    var startPoint = null;
+    var ctx = canvas.getContext('2d');
 
-    console.log(reSample(data, width))
-    var points = getPoints(reSample(data, width));
-    var endPoint;
-    var point;
+    this.draw = rawData => {
+        const len = Math.min(width, rawData.length) / 2,
+              gap = width / (len - 1),
+              data = reSample(rawData, len);
 
-    for(var i = 0; i < len; i++) {
-        point = points[i];
-        if (point) {
-            if (!startPoint) {
-                startPoint = point;
-            }
-            endPoint = point;
-        }
-    }
-
-    if (!endPoint) {
-        return;
-    }
-
-    ctx.save();
-    ctx.fillStyle = '#f2f2f2';
-    ctx.lineWidth = '3';
-    ctx.fillRect(0, 0, width, height);
-    ctx.restore();
-
-
-    ctx.beginPath();
-    for(var i = 1; i < len; i++) {
-        ctx.moveTo(i * gap, 0);
-        ctx.lineTo(i * gap, height);
-    }
-    ctx.save();
-    ctx.strokeStyle = '#DDD';
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.beginPath(  );
-    ctx.moveTo(startPoint.index * gap, height);
+        var yMinMax = minMax(data),
+            xAxisScale = createScale({ min: 0, max: X_TICKS_COUNT }, { min: Y_PADDING, max: width - PADDING - Y_PADDING }),
+            xScale = createScale({ min: 0, max: data.length }, { min: Y_PADDING, max: width - PADDING - Y_PADDING }),
+            yScale = createScale(yMinMax, { min: X_PADDING, max: height - PADDING - X_PADDING }, true);
     
+        clear();
+        // drawXAxis(0, 10, xAxisScale);
+        drawYAxis(yMinMax.min, yMinMax.max, yScale);
+        drawDataLine(data, yScale, xScale);
+    };
 
-    for(var i = 0; i < len; i++) {
-        point = points[i];
-        if (point) {
-            ctx.lineTo(point.index * gap,  - point.val * height * 0.8 / 2 + height/2);
-        }
+    this.drawLoading = () => {
+        clear();
+        drawMessage('loading...')
     }
 
-    ctx.lineTo(endPoint.index * gap, height);
-    ctx.save();
-    ctx.fillStyle = 'rgba(8,106,253,.4)';
-    ctx.strokeStyle = '#086afc';
-    ctx.lineWidth = '2';
-    ctx.stroke();
-    ctx.fill();
-    ctx.restore();
-
-    ctx.save();
-    ctx.strokeStyle = '#666';
-    ctx.lineWidth = '3';
-    ctx.strokeRect(0, 0, width, height);
-    ctx.restore();
-};
-    
-
-function getPoints(data) {
-    var points = [];
-    var len = data.length;
-    var sum = 0;
-    var count_valid = 0;
-    var max;
-    var min;
-    var d;
-    for(var i = 0; i< len; i++) {
-        d = data[i];
-        if (typeof d === 'number') {
-            if (typeof max !== 'number') {
-                max = d;
-                min = d;
-            }
-            max = d > max ? d : max;
-            min = d < max ? d : min;
-
-            count_valid += 1;
-
-            sum += data[i];
-        }
+    this.drawError = () => {
+        clear();
+        drawMessage('That was an error, my friend :(')
     }
-    var average = sum / count_valid;
-    var middle = (max - min)/2;
 
-    var range = max - min;
+    function createScale(from, to, invert) {
+        var fromPad = from.min,
+            toPad = to.min,
+            fromRange = from.max - from.min,
+            toRange = to.max - to.min;
 
-    for(var i = 0; i< len; i++) {
-        d = data[i];
-        if (typeof d === 'number') {
-            points.push({
-                val: 2 * ((d - min) / range - 0.5),
-                data: d,
-                index: i
-            });
+        if (invert) {
+            return x => ((fromRange - (x - fromPad)) / fromRange) * toRange + toPad;
         } else {
-            points.push(null);
+            return x => ((x - fromPad) / fromRange) * toRange + toPad;
         }
     }
-    return points;
-};
+    
+    function reSample(data, size) {
+        const chunkSize = data.length / size;
+        return data.reduce(function({ result, chunk }, v) {
+            if (chunk.length >= chunkSize) {
+                result.push(avg(chunk));
+                return {
+                    result, chunk: [v]
+                }
+            } 
+            chunk.push(v)
+            return { result, chunk }
+        }, { result: [], chunk: []}).result
+    }
+    
+    function clear () {
+        canvas.width = canvas.width;
+        ctx.clearRect(0, 0, width, height);
+    }
+    
+    function drawDataLine (data, yScale, xScale) {
+        ctx.beginPath();
+        ctx.moveTo(xScale(0), yScale(data[0]));
+    
+        for(let i = 0; i < data.length; i++) {
+            ctx.lineTo(xScale(i), yScale(data[i]));
+        }
+
+        strokeWithLineStyle();
+    }
+
+    function drawXAxis (start, end, scale) {
+        var gap = (end - start) / X_TICKS_COUNT,
+            yStart = height - X_PADDING,
+            yEnd = yStart + 5;
+
+        let x;
+        
+        for(let i = 0; i <= X_TICKS_COUNT; i++) {
+            x = Math.round(scale(start + gap * i));
+            ctx.moveTo(x, yStart);
+            ctx.lineTo(x, yEnd);
+        }
+        strokeWithTickStyle();
+    }
+    
+    function drawYAxis (start, end, scale) {
+        var gap = (end - start) / Y_TICKS_COUNT,
+            xStart = Y_PADDING,
+            xEnd = xStart - 5;
+
+        let y, yRaw;
+        
+        ctx.save();
+        ctx.textAlign = 'end';
+        for(let i = 0; i <= Y_TICKS_COUNT; i++) {
+            yRaw = start + gap * i
+            y = Math.round(scale(yRaw));
+            ctx.moveTo(xStart, y);
+            ctx.lineTo(xEnd, y);
+            ctx.fillText(Number(yRaw).toPrecision(2), xEnd - 2, y)
+        }
+        strokeWithTickStyle();
+    }
+
+    function drawMessage (msg) {
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(msg, Math.round(width / 2), Math.round(height / 2));
+        ctx.restore();
+    }
+
+    function strokeWithLineStyle () {
+        ctx.save();
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = '1';
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function strokeWithTickStyle () {
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = '1';
+        ctx.stroke();
+        ctx.restore();
+    }
+}

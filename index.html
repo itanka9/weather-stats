@@ -2,8 +2,11 @@
 <html>
     <head>
         <title>Weather Stats</title>
+        <script src="/funlib.js"></script>
+        <script src="/streams.js"></script>
         <script src="/store.js"></script>
         <script src="/chart.js"></script>
+        <script src="/ui.js"></script>
         <script src="/index.js"></script>
     </head>
     <style>
@@ -33,13 +36,13 @@
         <h3>Архив Метеослужбы</h3>
         <div class="main">
             <div class="type-selector">
-                <button onclick="switchDataType('temperature')">Температура</button>
-                <button onclick="switchDataType('precipitation')">Осадки</button>
+                <button id="temp">Температура</button>
+                <button id="prec">Осадки</button>
             </div>
             <div class="chart-container">
                 <div class="chart-controls">
-                    <select name="from" class="range-select" onchange="onRangeSelect()"></select>
-                    <select name="to" class="range-select" onchange="onRangeSelect()"></select>
+                    <select id="from" class="range-select"></select>
+                    <select id="to" class="range-select"></select>
                 </div>
                 <div id="chart" width="600" height="400"></div>
             </div>

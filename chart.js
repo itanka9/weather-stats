@@ -14,7 +14,7 @@ var Chart = function (width, height, el) {
 
     var ctx = canvas.getContext('2d');
 
-    this.draw = rawData => {
+    this.next = rawData => {
         const len = Math.min(width, rawData.length) / 2,
               gap = width / (len - 1),
               data = reSample(rawData, len);
@@ -35,7 +35,7 @@ var Chart = function (width, height, el) {
         drawMessage('loading...')
     }
 
-    this.drawError = () => {
+    this.error = () => {
         clear();
         drawMessage('That was an error, my friend :(')
     }

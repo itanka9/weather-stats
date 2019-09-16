@@ -123,3 +123,5 @@ Observable.fromDOMEvent = (el, eventName) => {
     })
     
 }
+
+Observable.const = constValue => new Observable(observer => observer.next(constValue))

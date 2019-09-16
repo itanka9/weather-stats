@@ -1,11 +1,12 @@
 'use strict';
 
 const cacheName = 'statics',
-    cacheVersion = '3',
+    cacheVersion = '4',
 
     cacheContent = [
         '/funlib.js',
-        '/streams.js',
+        '/observable.js',
+        '/persistence.js',
         '/store.js',
         '/chart.js',
         '/ui.js',

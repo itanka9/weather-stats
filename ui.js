@@ -6,8 +6,8 @@ function UI () {
 
     const defaultChartParams = {
         type: 'temperature',
-        fromYear: 1881,
-        toYear: 2006
+        fromYear: YEAR_MIN,
+        toYear: YEAR_MAX
     }
    
     fillSelects();
@@ -17,13 +17,14 @@ function UI () {
                 .map(ev => ({ [param]: value(ev) })),
                 getYear = ev => Number(ev.target.value)
     
-    return Observable
+    this.chartParamsStream = () => Observable
         .composeObjects([
             bindControl('#from', 'change', 'fromYear', getYear),
             bindControl('#to', 'change', 'toYear', getYear),
             bindControl('#temp', 'click', 'type', () => 'temperature'),
-            bindControl('#prec', 'click', 'type', () => 'precipitation')
-        ], defaultChartParams)
+            bindControl('#prec', 'click', 'type', () => 'precipitation'),
+	    Observable.const(defaultChartParams)
+        ])
 
     function fillSelects () {
         let selects = document.querySelectorAll('.range-select')

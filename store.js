@@ -80,9 +80,3 @@ const fetchData = async (dataType, fromYear, toYear) => {
     }
     return result
 }
-
-const saveToLs = (key, something) => {
-    localStorage.setItem(key, JSON.stringify(something))
-}
-
-const getFromLs = key => JSON.parse(localStorage.getItem(key))

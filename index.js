@@ -7,10 +7,19 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
     const chart = new Chart(600, 400, document.querySelector('#chart'));
 
-    (new UI())
-        .debounce(200)
+    const uiParamsStream = (new UI())
+	      .chartParamsStream()
+              .debounce(200),
+
+          paramsPersistence = Persistent('chart-params', uiParamsStream),
+	
+	  persistentParamsStream = Observable.composeObjects([
+              uiParamsStream,
+              paramsPersistence
+	  ]);
+
+     persistentParamsStream
         .effect(chart.drawLoading)
-        .effect(params => { saveToLs('chart-params', params) })
         .async(params => fetchData(
             params.type,
             `${params.fromYear}-01-01`,
